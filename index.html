@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cash Register</title>
+  <script src="script.js" defer></script>
+</head>
+<body>
+<h1>Cash Register</h1>
+
+<label>Cash Provided ($):</label>
+<input id="cash" type="number" step="0.01">
+<button id="purchase-btn">Purchase</button>
+<p id="change-due"></p>
+
+<script>
+// Global variables required by FCC
+let price = 19.5;
+let cid = [
+  ["PENNY", 1.01],
+  ["NICKEL", 2.05],
+  ["DIME", 3.1],
+  ["QUARTER", 4.25],
+  ["ONE", 90],
+  ["FIVE", 55],
+  ["TEN", 20],
+  ["TWENTY", 60],
+  ["ONE HUNDRED", 100]
+];
+
+const currencyUnit = [
+  ["PENNY", 0.01],
+  ["NICKEL", 0.05],
+  ["DIME", 0.10],
+  ["QUARTER", 0.25],
+  ["ONE", 1],
+  ["FIVE", 5],
+  ["TEN", 10],
+  ["TWENTY", 20],
+  ["ONE HUNDRED", 100]
+];
+
+document.getElementById("purchase-btn").addEventListener("click", function() {
+  const cash = Number(document.getElementById("cash").value);
+  const changeDueEl = document.getElementById("change-due");
+
+  if (cash < price) {
+    alert("Customer does not have enough money to purchase the item");
+    changeDueEl.textContent = "";
+    return;
+  }
+
+  if (cash === price) {
+    changeDueEl.textContent = "No change due - customer paid with exact cash";
+    return;
+  }
+
+  let change = Number((cash - price).toFixed(2));
+  let totalCID = Number(cid.reduce((sum, curr) => sum + curr[1], 0).toFixed(2));
+
+  if (totalCID < change) {
+    changeDueEl.textContent = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  let changeArr = [];
+  let remainingChange = change;
+  let reversedCID = [...cid].reverse();
+
+  for (let i = 0; i < reversedCID.length; i++) {
+    let [name, amountInDrawer] = reversedCID[i];
+    let unitValue = currencyUnit.find(c => c[0] === name)[1];
+    let amountToReturn = 0;
+
+    while (remainingChange >= unitValue && amountInDrawer >= unitValue) {
+      remainingChange = Number((remainingChange - unitValue).toFixed(2));
+      amountInDrawer = Number((amountInDrawer - unitValue).toFixed(2));
+      amountToReturn = Number((amountToReturn + unitValue).toFixed(2));
+    }
+
+    if (amountToReturn > 0) {
+      changeArr.push([name, amountToReturn]);
+    }
+  }
+
+  if (remainingChange > 0) {
+    changeDueEl.textContent = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  if (totalCID === change) {
+    changeDueEl.textContent = "Status: CLOSED " + changeArr.map(c => `${c[0]}: $${c[1].toFixed(2)}`).join(" ");
+  } else {
+    changeDueEl.textContent = "Status: OPEN " + changeArr.map(c => `${c[0]}: $${c[1].toFixed(2)}`).join(" ");
+  }
+});
+</script>
+</body>
+</html>
